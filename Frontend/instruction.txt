@@ -1,0 +1,1 @@
+make sure to match the request routes in both backend and frontend else requests won't react the server it can be looked in both forntend and backend's env file
