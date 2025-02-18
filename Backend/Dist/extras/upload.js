@@ -34,7 +34,7 @@ const storage = multer_1.default.diskStorage({
                 if (role === "interviewer") {
                     folder = "uploads/interviewers";
                 }
-                else if (role === "candidates") {
+                else if (role === "candidate") {
                     folder = "uploads/candidates";
                 }
                 else if (role === "company") {

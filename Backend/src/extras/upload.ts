@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
             if (file.mimetype.includes("pdf") || file.mimetype.includes("msword") || file.mimetype.includes("officedocument")) {
                 if (role === "interviewer") {
                     folder = "uploads/interviewers";
-                } else if (role === "candidates") {
+                } else if (role === "candidate") {
                     folder = "uploads/candidates";
                 } else if (role === "company") {
                     folder = "uploads/job_descriptions";
