@@ -50,11 +50,45 @@
       onSubmit(formData);
 
       try{
+        const fileUpload = async () => {
+          let role = '';
+        
+          if (formData.resume) {
+            const file = new FormData();
+        
+            if (window.location.href.includes('candidate')) {
+              role = "candidate";
+            } else {
+              role = "interviewer"; // Fix: changed "interview" to "interviewer"
+            }
+        
+            file.append("file", formData.resume);
+            file.append("role", role); // Ensure role is sent
+        
+            try {
+              await axios.post(`http://localhost:${import.meta.env.VITE_PORT}/api/v1/upload`, file, {
+                withCredentials: true,
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                }
+              });
+              alert("File uploaded successfully!");
+            } catch (error) {
+              console.error("Error uploading file:", error);
+              alert("Error uploading file!!");
+            }
+          } else {
+            alert("No file selected!");
+          }
+        };
+        
+        fileUpload();
         const response = await axios.post(
           `http://localhost:${import.meta.env.VITE_PORT}/api/v1/jobApply`,
           {formData : formData, jobId : id},
           { withCredentials: true }
         );
+
         if(response.status === 200){
           alert("Registration was Successfull!!");
         }

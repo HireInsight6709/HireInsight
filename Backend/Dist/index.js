@@ -14,6 +14,7 @@ const jobApply_1 = __importDefault(require("./Middleware/jobApply"));
 const status_1 = __importDefault(require("./Middleware/status"));
 const candidateApplied_1 = __importDefault(require("./Middleware/candidateApplied"));
 const profile_1 = __importDefault(require("./Middleware/profile"));
+const upload_1 = __importDefault(require("./extras/upload"));
 require("dotenv").config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -22,6 +23,7 @@ app.use((0, cors_1.default)({
     origin: 'http://localhost:5173',
     credentials: true
 }));
+app.use(express_1.default.urlencoded({ extended: true }));
 app.use(user_1.default);
 app.use(company_1.default);
 app.use(JobList_1.default);
@@ -29,6 +31,7 @@ app.use(jobApply_1.default);
 app.use(status_1.default);
 app.use(candidateApplied_1.default);
 app.use(profile_1.default);
+app.use(upload_1.default);
 app.listen(process.env.PORT, () => {
     console.log(`Listening on Port No. ${process.env.PORT}`);
     (0, Database_1.connectDatabase)();

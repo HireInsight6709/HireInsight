@@ -31,7 +31,7 @@ JobApply.post("/api/v1/jobApply",AuthToken,async(req,resp)=>{
     const candidate_Id = req.user.id;
     let company_Id = null;
 
-    const value1 = [candidate_Id , jobId , role]
+    const value1 = [candidate_Id , jobId , role];
 
     try{
         const response  = await Database.query(query1,value1);

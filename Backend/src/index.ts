@@ -11,6 +11,7 @@ import JobApply from "./Middleware/jobApply"
 import ApplicationStatus from "./Middleware/status"
 import candidateApplied from "./Middleware/candidateApplied"
 import profile from "./Middleware/profile"
+import upload from "./extras/upload"
 
 require("dotenv").config()
 
@@ -21,6 +22,7 @@ app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true
     }))
+app.use(express.urlencoded({ extended: true }));
 
 app.use(UserRoute);
 app.use(CompanyRoute);
@@ -29,6 +31,7 @@ app.use(JobApply);
 app.use(ApplicationStatus);
 app.use(candidateApplied);
 app.use(profile);
+app.use(upload);
 
 app.listen(process.env.PORT, ()=>{
     console.log(`Listening on Port No. ${process.env.PORT}`)

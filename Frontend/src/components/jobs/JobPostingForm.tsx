@@ -20,7 +20,7 @@ export interface JobPostingData {
   experience: string;
   skills: string[];
   jobType: 'Full-Time' | 'Part-Time' | 'Internship';
-  documents: File[];
+  documents: File | null;
   startDate: string;
   endDate: string;
 }
@@ -36,16 +36,28 @@ export default function JobPostingForm({ onClose, onSubmit }: JobPostingFormProp
     experience: '',
     skills: [],
     jobType: 'Full-Time',
-    documents: [],
+    documents: null,
     startDate: '',
     endDate: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     console.log("Harsh Submitted the form",formData);
 
-    axios.post(`http://localhost:${import.meta.env.VITE_PORT}/api/v1/dashboard/company/jobPost`,{data: formData}, { withCredentials: true });
+    const Upload = async()=>{
+      const file = new FormData();
+      if(formData.documents){
+        file.append('file',formData.documents);
+      }else{
+        alert("Problem while Uploading Document!!")
+      }
+      await axios.post(`http://localhost:${import.meta.env.VITE_PORT}/api/v1/upload`,file,{ withCredentials : true })
+    }
+
+    Upload();
+
+    await axios.post(`http://localhost:${import.meta.env.VITE_PORT}/api/v1/dashboard/company/jobPost`,{data: formData}, { withCredentials: true });
     onSubmit(formData);
   };
 
@@ -70,9 +82,10 @@ export default function JobPostingForm({ onClose, onSubmit }: JobPostingFormProp
           />
 
           <AttachmentsSection
-            documents={formData.documents}
+            document={formData.documents}
             onChange={(documents) => updateFormData({ documents })}
           />
+
 
           <ScheduleSection
             startDate={formData.startDate}
