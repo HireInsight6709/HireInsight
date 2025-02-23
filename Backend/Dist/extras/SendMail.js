@@ -16,12 +16,13 @@ const transporter = (0, nodemailer_1.createTransport)({
     port: 465,
     secure: true, // true for port 465, false for other ports
     auth: {
-        user: "finalyearproject862@gmail.com",
-        pass: "hohqbpgynvrchkme",
+        user: process.env.MailUSERNAME,
+        pass: process.env.MAILPASS,
     },
 });
 function SendMail(result, candidate_id, job_id) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log("Result is :", result);
         const fetchData = () => __awaiter(this, void 0, void 0, function* () {
             const query1 = `SELECT "firstName","lastName","email","job_Id","status","ResumeAnalysis_Feedback","company_id" FROM "Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`;
             const query2 = `SELECT "role_name" FROM "Jobs" WHERE "id" = $1`;
@@ -62,7 +63,7 @@ function SendMail(result, candidate_id, job_id) {
             
             <p>After careful consideration of your resume and qualifications, we have decided to <strong>${decision}</strong> your application for the next stage of our hiring process.</p>
             
-            ${decision === 'Accepted' ? '<p>We are excited to invite you to the next step of our interview cycle. Over the coming days, you will receive additional details about the interview schedule and any further steps required for onboarding. Please feel free to reach out if you have any questions.</p>' : '<p>While we were impressed with your skills and experiences, we have decided to move forward with other candidates whose qualifications more closely align with our current needs. We encourage you to apply again in the future if a role matches your expertise.</p>'}
+            ${decision == 'Accepted' ? '<p>We are excited to invite you to the next step of our interview cycle. Over the coming days, you will receive additional details about the interview schedule and any further steps required for onboarding. Please feel free to reach out if you have any questions.</p>' : '<p>While we were impressed with your skills and experiences, we have decided to move forward with other candidates whose qualifications more closely align with our current needs. We encourage you to apply again in the future if a role matches your expertise.</p>'}
             
             <p>Bellow we have attached the anaylsis report of system for your respective application
             </p>
@@ -72,11 +73,10 @@ function SendMail(result, candidate_id, job_id) {
             <p>Thank you again for considering a career with [Company Name]. We wish you all the best in your future endeavors.</p>
             </hr>
             <p>
-            <b> This is an 
-            </b></br>
+            This is an
             Best regards,</br>
-            Recruitment Team </br>
-            HireInsight</br>
+            <b>Recruitment Team</b> </br>
+            <b>HireInsight</b></br>
             </p>
             <p>
             <small>HireInsight is committed to protecting your personal information. Your information will be collected, used and may be shared by HireInsight with third party service providers to serve lawful purposes, for HireInsight recruitment process, including processing of data by third party when required. Your information shall be held only as long as necessary to achieve the purpose for which it is collected. The use and transfer of your information will be strictly in accordance with the applicable data privacy law and in line with our privacy policy available at privacy policy and Recruiting and Hiring Statement. Further, you agree and acknowledge that you have read HireInsight's privacy policy and fully understand your rights to access, correct erase, object to processing, restrict to processing or withdraw your personal information anytime and seek a copy of the personal information.</small></p>

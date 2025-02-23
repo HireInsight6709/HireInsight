@@ -8,12 +8,13 @@ const transporter = createTransport({
     port: 465,
     secure: true, // true for port 465, false for other ports
     auth: {
-        user: ,
-        pass: ,
+        user: process.env.MailUSERNAME,
+        pass: process.env.MAILPASS,
     },
 });
 
   async function SendMail(result:string,candidate_id:string,job_id:string) {
+    console.log("Result is :",result)
       
       const fetchData = async() => {
           const query1 = `SELECT "firstName","lastName","email","job_Id","status","ResumeAnalysis_Feedback","company_id" FROM "Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`
@@ -64,7 +65,7 @@ const transporter = createTransport({
             <p>After careful consideration of your resume and qualifications, we have decided to <strong>${decision}</strong> your application for the next stage of our hiring process.</p>
             
             ${
-                decision === 'Accepted'  ? '<p>We are excited to invite you to the next step of our interview cycle. Over the coming days, you will receive additional details about the interview schedule and any further steps required for onboarding. Please feel free to reach out if you have any questions.</p>' : '<p>While we were impressed with your skills and experiences, we have decided to move forward with other candidates whose qualifications more closely align with our current needs. We encourage you to apply again in the future if a role matches your expertise.</p>'
+                decision == 'Accepted'  ? '<p>We are excited to invite you to the next step of our interview cycle. Over the coming days, you will receive additional details about the interview schedule and any further steps required for onboarding. Please feel free to reach out if you have any questions.</p>' : '<p>While we were impressed with your skills and experiences, we have decided to move forward with other candidates whose qualifications more closely align with our current needs. We encourage you to apply again in the future if a role matches your expertise.</p>'
             }
             
             <p>Bellow we have attached the anaylsis report of system for your respective application
