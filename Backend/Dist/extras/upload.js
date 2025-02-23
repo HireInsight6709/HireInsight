@@ -17,7 +17,63 @@ const express_1 = __importDefault(require("express"));
 const token_auth_1 = require("../Authentication/token_auth");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const child_process_1 = require("child_process");
+const Database_1 = require("../Databases/Database");
+const SendMail_1 = __importDefault(require("./SendMail"));
 const ROOT_DIR = path_1.default.resolve(__dirname, "../../");
+const pythonScriptPath = path_1.default.join(__dirname, '../../../ResumeScreening/ResumeScreening3.py');
+const job_description = `    Hi, We are looking for Candidates who are having experience as Gen AI Role.
+
+
+
+Experience Required: 5+ years.
+
+Location: PAN India
+
+Responsibilities:
+
+Design, develop, and deploy generative AI models
+
+Leveraging your expertise in Generative AI, Python, Machine Learning, Data Science, and Statistics to develop cutting-edge solutions for our clients.
+
+Utilizing NLP techniques, LangChain, and LLM's to develop conversational chatbots and language models tailored to our clients' needs.
+
+Collaborating with cross-functional teams to design and implement advanced AI models and algorithms.
+
+Providing technical expertise and thought leadership in the field of Generative AI and NLP to guide clients in adopting AI-driven solutions.
+
+Conducting data analysis, preprocessing, and modeling to extract valuable insights and drive data-driven decision-making.
+
+Staying up to date with the latest advancements in AI technologies, frameworks, and tools, and proactively learning and adopting new technologies to enhance our offerings.
+
+Demonstrating a strong understanding of cloud platforms, particularly GCP, for deploying AI applications.`;
+// pass jd as 2nd arg
+const runPythonScript = (pdfPath, job_description) => {
+    return new Promise((resolve, reject) => {
+        // pass jd as 3rd arg
+        const process = (0, child_process_1.spawn)('python', [pythonScriptPath, pdfPath, job_description]);
+        let dataString = '';
+        let errorString = '';
+        process.stdout.on('data', (data) => {
+            dataString += data.toString();
+        });
+        process.stderr.on('data', (data) => {
+            errorString += data.toString();
+        });
+        process.on('close', (code) => {
+            if (code !== 0) {
+                return reject(new Error(`Python script exited with code ${code}: ${errorString}`));
+            }
+            try {
+                const result = JSON.parse(dataString);
+                resolve(result);
+            }
+            catch (err) {
+                reject(new Error(`Error parsing Python output: ${err.message}`));
+            }
+        });
+    });
+};
 const generateFilename = (originalName) => {
     const ext = path_1.default.extname(originalName);
     const name = path_1.default.basename(originalName, ext).replace(/\s+/g, "_");
@@ -89,8 +145,24 @@ upload.post("/api/v1/upload", token_auth_1.AuthToken, (req, res, next) => {
             res.status(400).json({ message: "Role is required" });
             return;
         }
+        // pAss jd as 2nd arg
+        const result = yield runPythonScript(multerReq.file.path, job_description);
+        console.log("Python script result:", result.response);
+        // Check them and fix them
+        const candidate_id = req.user.id;
+        const job_id = req.body.JobId;
+        const overallRatingMatch = result.response.match(/Overall Rating \(out of 10\):\s*(\d+)/);
+        let decision = '';
+        if (overallRatingMatch) {
+            const overallRating = parseInt(overallRatingMatch[1], 10);
+            decision = overallRating >= 6 ? 'Accepted' : 'Rejected';
+        }
+        const query = `UPDATE "Applications" SET status = $1,"ResumeAnalysis_Feedback"=$2 WHERE "candidate_Id" = $3 AND "job_Id" = $4`;
+        const value = [decision, result.response, candidate_id, job_id];
+        yield Database_1.Database.query(query, value);
+        yield (0, SendMail_1.default)(decision, candidate_id, job_id);
         res.status(200).json({
-            message: "File uploaded successfully",
+            message: "Server Task successfully",
             filename: multerReq.file.filename,
             filePath: multerReq.file.path,
             role: req.body.role

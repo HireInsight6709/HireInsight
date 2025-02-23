@@ -20,6 +20,7 @@
     email: string;
     phone: string;
     resume: File | null;
+    jobId : number,
     questions: {
       whyHire: string;
       experience: string;
@@ -36,6 +37,7 @@
       email: '',
       phone: '',
       resume: null,
+      jobId : id,
       questions: {
         whyHire: '',
         experience: '',
@@ -64,6 +66,7 @@
         
             file.append("file", formData.resume);
             file.append("role", role); // Ensure role is sent
+            file.append("JobId",formData.jobId.toString());
         
             try {
               await axios.post(`http://localhost:${import.meta.env.VITE_PORT}/api/v1/upload`, file, {
@@ -72,10 +75,16 @@
                   "Content-Type": "multipart/form-data",
                 }
               });
-              alert("File uploaded successfully!");
+              alert(`File Evaluation Sucessfull!!,Check mail for furthur details`);
+
             } catch (error) {
               console.error("Error uploading file:", error);
+
+              const jobId = formData.jobId;
+              
               alert("Error uploading file!!");
+              
+              await axios.post("/api/v1/deleteApplication",{jobId},{withCredentials:true})
             }
           } else {
             alert("No file selected!");

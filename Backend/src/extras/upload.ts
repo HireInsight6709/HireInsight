@@ -3,8 +3,70 @@ import express, { Request, Response, NextFunction } from "express";
 import { AuthToken } from "../Authentication/token_auth";
 import path from "path";
 import fs from "fs";
+import { spawn } from 'child_process';
+import { Database } from "../Databases/Database";
+import SendMail from "./SendMail";
+
 
 const ROOT_DIR = path.resolve(__dirname, "../../");
+const pythonScriptPath = path.join(__dirname, '../../../ResumeScreening/ResumeScreening3.py');
+const job_description = `    Hi, We are looking for Candidates who are having experience as Gen AI Role.
+
+
+
+Experience Required: 5+ years.
+
+Location: PAN India
+
+Responsibilities:
+
+Design, develop, and deploy generative AI models
+
+Leveraging your expertise in Generative AI, Python, Machine Learning, Data Science, and Statistics to develop cutting-edge solutions for our clients.
+
+Utilizing NLP techniques, LangChain, and LLM's to develop conversational chatbots and language models tailored to our clients' needs.
+
+Collaborating with cross-functional teams to design and implement advanced AI models and algorithms.
+
+Providing technical expertise and thought leadership in the field of Generative AI and NLP to guide clients in adopting AI-driven solutions.
+
+Conducting data analysis, preprocessing, and modeling to extract valuable insights and drive data-driven decision-making.
+
+Staying up to date with the latest advancements in AI technologies, frameworks, and tools, and proactively learning and adopting new technologies to enhance our offerings.
+
+Demonstrating a strong understanding of cloud platforms, particularly GCP, for deploying AI applications.`
+
+// pass jd as 2nd arg
+const runPythonScript = (pdfPath: string , job_description : string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        // pass jd as 3rd arg
+      const process = spawn('python', [pythonScriptPath, pdfPath, job_description]);
+  
+      let dataString = '';
+      let errorString = '';
+  
+      process.stdout.on('data', (data) => {
+        dataString += data.toString();
+      });
+  
+      process.stderr.on('data', (data) => {
+        errorString += data.toString();
+      });
+  
+      process.on('close', (code) => {
+        if (code !== 0) {
+          return reject(new Error(`Python script exited with code ${code}: ${errorString}`));
+        }
+        try {
+          const result = JSON.parse(dataString);
+          resolve(result);
+        } catch (err) {
+          reject(new Error(`Error parsing Python output: ${(err as Error).message}`));
+        }
+      });
+    });
+  };
+  
 
 const generateFilename = (originalName: string) => {
     const ext = path.extname(originalName);
@@ -90,15 +152,39 @@ upload.post(
                 res.status(400).json({ message: "Role is required" });
                 return;
             }
+            // pAss jd as 2nd arg
+            const result = await runPythonScript(multerReq.file.path,job_description);
+            console.log("Python script result:", result.response);
+
+            // Check them and fix them
+            const  candidate_id = req.user.id;
+            const job_id = req.body.JobId;
+
+            const overallRatingMatch = result.response.match(/Overall Rating \(out of 10\):\s*(\d+)/);
+            
+            let decision = '';
+
+            if (overallRatingMatch) {
+            const overallRating = parseInt(overallRatingMatch[1], 10);
+            decision = overallRating >= 6 ? 'Accepted' : 'Rejected';
+            }
+            
+            const query = `UPDATE "Applications" SET status = $1,"ResumeAnalysis_Feedback"=$2 WHERE "candidate_Id" = $3 AND "job_Id" = $4`
+
+            const value = [decision,result.response,candidate_id,job_id];
+
+            await Database.query(query,value);
+
+            await SendMail(decision,candidate_id,job_id);
 
             res.status(200).json({
-                message: "File uploaded successfully",
+                message: "Server Task successfully",
                 filename: multerReq.file.filename,
                 filePath: multerReq.file.path,
                 role: req.body.role
             });
 
-        } catch (error) {
+        }catch(error) {
             console.error("Upload processing error:", error);
             res.status(500).json({ 
                 message: "Internal server error during file upload",
