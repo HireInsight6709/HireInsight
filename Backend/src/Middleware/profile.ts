@@ -7,7 +7,14 @@ const profile = express.Router();
 profile.get("/api/v1/profile",AuthToken,async(req,resp)=>{
     console.log("On Profile page");
 
-    const query = `SELECT ("firstName","lastName","email","dateOfBirth","location","mobile","qualifications","skills","universityName") FROM "Candidate" WHERE "user_Id" = $1`;
+    let Table = "";
+    if(req.user.role == "Interviewer"){
+        Table = "Interviewer"
+    }else{
+        Table = "Candidate"
+    }
+
+    const query = `SELECT ("firstName","lastName","email","dateOfBirth","location","mobile","qualifications","skills","universityName") FROM "${Table}" WHERE "user_Id" = $1`;
 
     const value = [req.user.id];
     try{
@@ -27,6 +34,7 @@ profile.get("/api/v1/profile",AuthToken,async(req,resp)=>{
             })
         }
     }catch(e){
+        console.log(e)
         resp.status(500).json({
             message : "Internal error has occured"
         })
@@ -41,7 +49,15 @@ profile.post("/api/v1/profile",AuthToken,async(req,resp)=>{
 
     const value = [profileData.firstName,profileData.lastName,profileData.email,profileData.dateOfBirth,profileData.location,profileData.mobileNumber,profileData.qualifications,profileData.skills,profileData.universityName, req.user.id];
 
-    const query = `UPDATE "Candidate" SET "firstName" = $1, "lastName" = $2, email = $3, "dateOfBirth" = $4, location = $5, mobile = $6, qualifications = $7, skills = $8, "universityName" = $9 WHERE "user_Id" = $10`;
+    
+    let Table = "";
+    if(req.user.role == "Interviewer"){
+        Table = "Interviewer"
+    }else{
+        Table = "Candidate"
+    }
+
+    const query = `UPDATE "${Table}" SET "firstName" = $1, "lastName" = $2, email = $3, "dateOfBirth" = $4, location = $5, mobile = $6, qualifications = $7, skills = $8, "universityName" = $9 WHERE "user_Id" = $10`;
 
     try{
         await Database.query(query,value);

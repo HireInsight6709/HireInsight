@@ -2,10 +2,37 @@ import { useEffect, useState } from 'react';
 import { User, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import axios from 'axios';
 
+interface Application{
+  id: number,
+  jobRole: string,
+  role: string,
+  status: string,
+  candidate: Candidate,
+  answers: Answers,
+  appliedDate: string
+}
+
+interface Candidate{
+  name: string,
+  email: string,
+  phone: string,
+  experience: string,
+  resume: string,
+}
+
+interface Answers{
+  whyHire: string,
+  experience: string,
+  challenge: string,
+  availability: string,
+  salary: string
+}
+
 // const mockApplications: Application[] = [
 //   {
 //     id: 1,
 //     jobRole: "Senior Frontend Developer",
+//     role: "Candidate",
 //     candidate: {
 //       name: "Alice Johnson",
 //       email: "alice@example.com",
@@ -39,7 +66,7 @@ export default function CandidateApplications() {
         setdata(information.data.information);
       }
     fetchData();
-  })
+  },[])
 
 
   const toggleExpand = (id: number) => {
@@ -48,7 +75,9 @@ export default function CandidateApplications() {
 
   return (
     <div className="space-y-6">
-      {data.map((application:any) => (
+      {data.length === 0 ? (
+        <p className="text-center text-gray-500">No one has applied yet.</p>
+      ): data.map((application:Application) => (
         <div key={application.id} className="bg-white shadow-sm rounded-lg overflow-hidden">
           <div 
             className="p-6 cursor-pointer hover:bg-gray-50"
@@ -61,6 +90,8 @@ export default function CandidateApplications() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">{application.candidate.name}</h3>
+                  <p className='text-sm text-gray-500'>Role : {application.role}</p>
+                  <p className='text-sm text-gray-500'>Status : {application.status}</p>
                   <p className="text-sm text-gray-500">Applied for {application.jobRole}</p>
                   <p className="text-sm text-gray-500">Applied on {new Date(application.appliedDate).toLocaleDateString()}</p>
                 </div>

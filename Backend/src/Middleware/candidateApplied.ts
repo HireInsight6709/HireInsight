@@ -6,19 +6,19 @@ const candidateApplied = express.Router();
 
 const query1 = `SELECT "id", 
   json_build_object(
-    'name' ,CONCAT("firstName" , ' ' , "lastName"),
-    'email' , "email",
-    'phone' , "phone"
-  ) AS candidate ,
+    'name', CONCAT("firstName", ' ', "lastName"),
+    'email', "email",
+    'phone', "phone"
+  ) AS candidate,
   json_build_object(
-    'whyHire' , "whyHire",
-    'experience' , "experience",
-    'challenge' , "challenge",
-    'availability' , "availability",
-    'salary' , "salary"
+    'whyHire', "whyHire",
+    'experience', "experience",
+    'challenge', "challenge",
+    'availability', "availability",
+    'salary', "salary"
   ) AS answers,
-      "candidate_Id" , "job_Id" , TO_CHAR("time", 'YYYY-MM-DD') as "appliedDate"
-     FROM "Applications" a WHERE a.company_id = $1;`
+  "candidate_Id", "role", "job_Id","status", TO_CHAR("time", 'YYYY-MM-DD') as "appliedDate"
+  FROM "Applications" WHERE "company_id" = $1;`
 
 candidateApplied.get("/api/v1/candidateApplied/",AuthToken,async(req,resp)=>{
   console.log("On candidateApplied Page");
@@ -28,11 +28,13 @@ candidateApplied.get("/api/v1/candidateApplied/",AuthToken,async(req,resp)=>{
   try{
     const response1 = await Database.query(query1,[companyId]);
     const PartialObject = response1.rows;
-
+    console.log("Partial Object is : ",PartialObject);
+    
     const UpdatedResponse = PartialObject.map(async(user)=>{
       const JobValueUpdate = await Database.query(`SELECT "role_name" AS "jobRole" FROM "Jobs" WHERE "id" = $1`,[user.job_Id]);
       const jobDetails = JobValueUpdate.rows[0];
       delete user.job_Id;
+      console.log("jobDetails is : ",jobDetails);
 
       return {...user,...jobDetails}
     })

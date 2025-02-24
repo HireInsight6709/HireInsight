@@ -1,55 +1,61 @@
 import axios from 'axios';
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect,useState } from 'react';
 
 interface Application {
   id: number;
-  companyName: string;
+  job_Id : string;
+  ApplicationStatus: 'Accepted' | 'Rejected' | '';
   jobRole: string;
-  interviewDate: string;
+  company_id: string;
+  companyName: string;
   interviewer: string;
-  ApplicationStatus: 'Accepted' | 'Rejected';
+  interviewDate: string;
   status: 'Accepted' | 'Rejected' | 'Pending';
   feedback?: string;
 }
 
-const mockApplications: Application[] = [
-  {
-    id: 1,
-    companyName: 'TechCorp',
-    jobRole: 'Senior Frontend Developer',
-    interviewDate: '2024-03-15',
-    interviewer: 'John Smith',
-    ApplicationStatus: 'Accepted',
-    status: 'Accepted',
-    feedback: 'Strong technical skills and great cultural fit.',
-  },
-  {
-    id: 2,
-    companyName: 'InnovateLabs',
-    jobRole: 'Full Stack Developer',
-    interviewDate: '2024-03-18',
-    interviewer: 'Sarah Johnson',
-    ApplicationStatus: 'Accepted',
-    status: 'Rejected',
-    feedback: 'Good technical skills but looking for more experience with our tech stack.',
-  },
-  {
-    id: 3,
-    companyName: 'StartupX',
-    jobRole: 'React Developer',
-    interviewDate: '2024-03-20',
-    interviewer: 'Mike Brown',
-    ApplicationStatus: 'Accepted',
-    status: 'Pending',
-  },
-];
+// const mockApplications: Application[] = [
+//   {
+//     id: 1,
+//     companyName: 'TechCorp',
+//     jobRole: 'Senior Frontend Developer',
+//     interviewDate: '2024-03-15',
+//     interviewer: 'John Smith',
+//     ApplicationStatus: 'Accepted',
+//     status: 'Accepted',
+//     feedback: 'Strong technical skills and great cultural fit.',
+//   },
+//   {
+//     id: 2,
+//     companyName: 'InnovateLabs',
+//     jobRole: 'Full Stack Developer',
+//     interviewDate: '2024-03-18',
+//     interviewer: 'Sarah Johnson',
+//     ApplicationStatus: 'Accepted',
+//     status: 'Rejected',
+//     feedback: 'Good technical skills but looking for more experience with our tech stack.',
+//   },
+//   {
+//     id: 3,
+//     companyName: 'StartupX',
+//     jobRole: 'React Developer',
+//     interviewDate: '2024-03-20',
+//     interviewer: 'Mike Brown',
+//     ApplicationStatus: 'Accepted',
+//     status: 'Pending',
+//   },
+// ];
 
 export default function ApplicationStatus() {
+  const [mockApplications , setMockApplication] = useState<Application[]>([])
   useEffect(()=>{
     const fetchData = async()=>{
       try{
-        await axios.get(`http://localhost:${import.meta.env.VITE_PORT}/api/v1/status`,{ withCredentials : true });
+        const response = await axios.get(`http://localhost:${import.meta.env.VITE_PORT}/api/v1/status`,{ withCredentials : true });
+        const information : Application[] = response.data.information; 
+        console.log(information)
+        setMockApplication(information);
       }catch(e){
         console.log(e)
       }
@@ -79,6 +85,17 @@ export default function ApplicationStatus() {
     }
   };
 
+  const getApplicationStatusColor = (status: Application['ApplicationStatus']) => {
+    switch (status) {
+      case 'Accepted':
+        return 'text-green-600';
+      case 'Rejected':
+        return 'text-red-800';
+      case '':
+        return 'text-red-800';
+    }
+  };
+
   return (
     <div className="space-y-6">
       {mockApplications.map((application) => (
@@ -95,7 +112,7 @@ export default function ApplicationStatus() {
                 </span>
               </div>
               <p className="text-sm text-gray-600">{application.companyName}</p>
-              <p className="text-sm text-gray-600">Application Status : <b className={`${getStatusBadgeColor(application.ApplicationStatus)}`}>{application.ApplicationStatus}</b></p>
+              <p className="text-sm text-gray-600">Application Status : <b className={`${getApplicationStatusColor(application.ApplicationStatus)}`}>{application.ApplicationStatus == '' ? 'Rejected' : application.ApplicationStatus}</b></p>
               <div className="text-sm text-gray-500">
                 Interviewed by {application.interviewer} on {new Date(application.interviewDate).toLocaleDateString()}
               </div>

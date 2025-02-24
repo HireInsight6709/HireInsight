@@ -4,7 +4,7 @@ import { Database } from "../Databases/Database";
 
 const ApplicationStatus = express.Router();
 
-const query1 = `SELECT ("job_Id","status") FROM "Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
+const query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
 
 ApplicationStatus.get("/api/v1/status",AuthToken,async(req,resp)=>{
     console.log("On status Page")
@@ -15,7 +15,7 @@ ApplicationStatus.get("/api/v1/status",AuthToken,async(req,resp)=>{
         const updatedJobId = jobs.map(async (job) => {
                 console.log(job);
                 const jobDetailResponse = await Database.query(
-                    `SELECT "role_name", "company_id" FROM "Jobs" WHERE "id" = $1`,
+                    `SELECT "role_name" AS "jobRole", "company_id" FROM "Jobs" WHERE "id" = $1`,
                     [job.job_Id]
                 );
                 const jobDetail = jobDetailResponse.rows[0];
@@ -27,12 +27,22 @@ ApplicationStatus.get("/api/v1/status",AuthToken,async(req,resp)=>{
 
         
                 // Replace the `id` with the fetched job detail
-                return {...jobDetail,...comapnyDetail} ;
+    //   "status": "Rejected",
+    //   "feedback": "Feedback here
+                return {...job,...jobDetail,...comapnyDetail, interviewer: "" ,interviewDate: "", status: "Pending" , feedback: "Feedback Here"} ;
             })
-        
-        console.log("Updated jobs are:", await Promise.all(updatedJobId));
+        const information = await Promise.all(updatedJobId)
+        console.log("Updated jobs are:", information);
+
+        resp.status(200).json({
+            information : information
+        })
     }catch(e){
         console.log(e);
+        
+        resp.status(500).json({
+            message: "Internal server error"
+        })
     }
 })
 

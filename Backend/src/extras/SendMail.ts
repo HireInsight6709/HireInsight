@@ -17,6 +17,7 @@ const transporter = createTransport({
     console.log("Result is :",result)
       
       const fetchData = async() => {
+        // Add role value also to prevent contentation do it in all where applications used
           const query1 = `SELECT "firstName","lastName","email","job_Id","status","ResumeAnalysis_Feedback","company_id" FROM "Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`
           
           const query2 = `SELECT "role_name" FROM "Jobs" WHERE "id" = $1`

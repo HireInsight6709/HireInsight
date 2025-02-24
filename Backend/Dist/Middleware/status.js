@@ -16,7 +16,7 @@ const express_1 = __importDefault(require("express"));
 const token_auth_1 = require("../Authentication/token_auth");
 const Database_1 = require("../Databases/Database");
 const ApplicationStatus = express_1.default.Router();
-const query1 = `SELECT ("job_Id") FROM "Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
+const query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
 ApplicationStatus.get("/api/v1/status", token_auth_1.AuthToken, (req, resp) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("On status Page");
     try {
@@ -24,18 +24,27 @@ ApplicationStatus.get("/api/v1/status", token_auth_1.AuthToken, (req, resp) => _
         const jobs = response.rows;
         const updatedJobId = jobs.map((job) => __awaiter(void 0, void 0, void 0, function* () {
             console.log(job);
-            const jobDetailResponse = yield Database_1.Database.query(`SELECT "role_name", "company_id" FROM "Jobs" WHERE "id" = $1`, [job.job_Id]);
+            const jobDetailResponse = yield Database_1.Database.query(`SELECT "role_name" AS "jobRole", "company_id" FROM "Jobs" WHERE "id" = $1`, [job.job_Id]);
             const jobDetail = jobDetailResponse.rows[0];
             console.log(jobDetail);
             const comapnyDetailResponse = yield Database_1.Database.query(`SELECT "companyName" FROM "Company" WHERE "company_Id" = $1`, [jobDetail.company_id]);
             const comapnyDetail = comapnyDetailResponse.rows[0];
             // Replace the `id` with the fetched job detail
-            return Object.assign(Object.assign({}, jobDetail), comapnyDetail);
+            //   "status": "Rejected",
+            //   "feedback": "Feedback here
+            return Object.assign(Object.assign(Object.assign(Object.assign({}, job), jobDetail), comapnyDetail), { interviewer: "", interviewDate: "", status: "Pending", feedback: "Feedback Here" });
         }));
-        console.log("Updated jobs are:", yield Promise.all(updatedJobId));
+        const information = yield Promise.all(updatedJobId);
+        console.log("Updated jobs are:", information);
+        resp.status(200).json({
+            information: information
+        });
     }
     catch (e) {
         console.log(e);
+        resp.status(500).json({
+            message: "Internal server error"
+        });
     }
 }));
 exports.default = ApplicationStatus;

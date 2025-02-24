@@ -18,29 +18,31 @@ const Database_1 = require("../Databases/Database");
 const candidateApplied = express_1.default.Router();
 const query1 = `SELECT "id", 
   json_build_object(
-    'name' ,CONCAT("firstName" , ' ' , "lastName"),
-    'email' , "email",
-    'phone' , "phone"
-  ) AS candidate ,
+    'name', CONCAT("firstName", ' ', "lastName"),
+    'email', "email",
+    'phone', "phone"
+  ) AS candidate,
   json_build_object(
-    'whyHire' , "whyHire",
-    'experience' , "experience",
-    'challenge' , "challenge",
-    'availability' , "availability",
-    'salary' , "salary"
+    'whyHire', "whyHire",
+    'experience', "experience",
+    'challenge', "challenge",
+    'availability', "availability",
+    'salary', "salary"
   ) AS answers,
-      "candidate_Id" , "job_Id" , TO_CHAR("time", 'YYYY-MM-DD') as "appliedDate"
-     FROM "Applications" a WHERE a.company_id = $1;`;
+  "candidate_Id", "role", "job_Id","status", TO_CHAR("time", 'YYYY-MM-DD') as "appliedDate"
+  FROM "Applications" WHERE "company_id" = $1;`;
 candidateApplied.get("/api/v1/candidateApplied/", token_auth_1.AuthToken, (req, resp) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("On candidateApplied Page");
     const companyId = req.user.id;
     try {
         const response1 = yield Database_1.Database.query(query1, [companyId]);
         const PartialObject = response1.rows;
+        console.log("Partial Object is : ", PartialObject);
         const UpdatedResponse = PartialObject.map((user) => __awaiter(void 0, void 0, void 0, function* () {
             const JobValueUpdate = yield Database_1.Database.query(`SELECT "role_name" AS "jobRole" FROM "Jobs" WHERE "id" = $1`, [user.job_Id]);
             const jobDetails = JobValueUpdate.rows[0];
             delete user.job_Id;
+            console.log("jobDetails is : ", jobDetails);
             return Object.assign(Object.assign({}, user), jobDetails);
         }));
         const information = yield Promise.all(UpdatedResponse);
