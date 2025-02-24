@@ -4,7 +4,7 @@ import { Database } from "../Databases/Database";
 
 const ApplicationStatus = express.Router();
 
-const query1 = `SELECT ("job_Id") FROM "Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
+const query1 = `SELECT ("job_Id","status") FROM "Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
 
 ApplicationStatus.get("/api/v1/status",AuthToken,async(req,resp)=>{
     console.log("On status Page")
