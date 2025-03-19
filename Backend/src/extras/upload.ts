@@ -186,6 +186,16 @@ upload.post(
 
         }catch(error) {
             console.error("Upload processing error:", error);
+
+            const  candidate_id = req.user.id;
+            const job_id = req.body.JobId;
+
+            const query = `DELETE FROM "Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`
+
+            const value = [candidate_id,job_id]
+
+            await Database.query(query,value);
+
             res.status(500).json({ 
                 message: "Internal server error during file upload",
                 error: error instanceof Error ? error.message : "Unknown error"

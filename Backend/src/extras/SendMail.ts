@@ -66,15 +66,15 @@ const transporter = createTransport({
             <p>After careful consideration of your resume and qualifications, we have decided to <strong>${decision}</strong> your application for the next stage of our hiring process.</p>
             
             ${
-                decision == 'Accepted'  ? '<p>We are excited to invite you to the next step of our interview cycle. Over the coming days, you will receive additional details about the interview schedule and any further steps required for onboarding. Please feel free to reach out if you have any questions.</p>' : '<p>While we were impressed with your skills and experiences, we have decided to move forward with other candidates whose qualifications more closely align with our current needs. We encourage you to apply again in the future if a role matches your expertise.</p>'
+                decision == 'Accepted'  ? 
+                `<p>We were highly impressed with your skills, experience, and overall qualifications. Your background and expertise align well with the role's requirements, and we believe you would be a great addition to our team.</p>
+                <p>As a next step we are excited to invite you to the next step of our interview cycle. Over the coming days, you will receive additional details about the interview schedule and any further steps required for onboarding. Please feel free to reach out if you have any questions.</p>`
+                : 
+                `<p>While we were impressed with your skills and experiences, we have decided to move forward with other candidates whose qualifications more closely align with our current needs. We encourage you to apply again in the future if a role matches your expertise.</p>
+                <p>Please know that this decision in no way reflects on your abilities or potential. We were genuinely impressed by your achievements and believe you have a bright future ahead. We encourage you to continue pursuing your goals with the same passion and determination you demonstrated to us.</p>`
             }
             
-            <p>Bellow we have attached the anaylsis report of system for your respective application
-            </p>
-            
-            ${Analysis}
-            
-            <p>Thank you again for considering a career with [Company Name]. We wish you all the best in your future endeavors.</p>
+            <p>Thank you again for considering a career with ${Company_Name}. We wish you all the best in your future endeavors.</p>
             </hr>
             <p>
             This is an

@@ -8,7 +8,6 @@ import fitz
 
 # Load environment variables
 load_dotenv()
-
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 nlp = spacy.load("en_core_web_sm")
 
