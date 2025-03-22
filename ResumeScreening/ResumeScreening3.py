@@ -40,7 +40,7 @@ def get_gemini_response(resume_text, job_description):
     {job_description}
     """
     try:
-        model = genai.GenerativeModel("gemini-pro")
+        model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
