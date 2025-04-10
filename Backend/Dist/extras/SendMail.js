@@ -20,24 +20,31 @@ const transporter = (0, nodemailer_1.createTransport)({
         pass: process.env.MAILPASS,
     },
 });
-function SendMail(result, candidate_id, job_id) {
+function SendMail(result, candidate_id, job_id, role) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("Result is :", result);
         const fetchData = () => __awaiter(this, void 0, void 0, function* () {
             // Add role value also to prevent contentation do it in all where applications used
-            const query1 = `SELECT "firstName","lastName","email","job_Id","status","ResumeAnalysis_Feedback","company_id" FROM "Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`;
+            let query1 = '';
+            console.log("The role fetched from the uploads was : ", role);
+            if (role == 'Candidate') {
+                query1 = `SELECT "firstName","lastName","email","job_Id","status","ResumeAnalysis_Feedback","company_Id" FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`;
+            }
+            else {
+                query1 = `SELECT "firstName","lastName","email","job_Id","status","ResumeAnalysis_Feedback","company_Id" FROM "Interviewer_Applications" WHERE "interviewer_Id" = $1 AND "job_Id" = $2`;
+            }
             const query2 = `SELECT "role_name" FROM "Jobs" WHERE "id" = $1`;
             const query3 = `SELECT "companyName" FROM "Company" WHERE "company_Id" = $1`;
             const value = [candidate_id, job_id];
             try {
                 const response1 = (yield Database_1.Database.query(query1, value)).rows[0];
-                console.log(response1);
+                console.log("Response 1 is : ", response1);
                 let arr = Object.values(response1);
                 const response2 = (yield Database_1.Database.query(query2, [job_id])).rows[0].role_name;
-                console.log(response2);
+                console.log("Response 2 is : ", response2);
                 arr.push(response2);
                 const response3 = (yield Database_1.Database.query(query3, [arr[6]])).rows[0].companyName;
-                console.log(response3);
+                console.log("Response 3 is : ", response3);
                 arr.push(response3);
                 return arr;
             }

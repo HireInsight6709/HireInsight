@@ -20,6 +20,8 @@ const fs_1 = __importDefault(require("fs"));
 const child_process_1 = require("child_process");
 const Database_1 = require("../Databases/Database");
 const SendMail_1 = __importDefault(require("./SendMail"));
+const deleteApplication_1 = __importDefault(require("./deleteApplication"));
+const ScheduleInterview_1 = __importDefault(require("./ScheduleInterview"));
 const ROOT_DIR = path_1.default.resolve(__dirname, "../../");
 const pythonScriptPath = path_1.default.join(__dirname, '../../../ResumeScreening/ResumeScreening3.py');
 const job_description = `    Hi, We are looking for Candidates who are having experience as Gen AI Role.
@@ -70,6 +72,8 @@ const runPythonScript = (pdfPath, job_description) => {
             }
             catch (err) {
                 reject(new Error(`Error parsing Python output: ${err.message}`));
+                console.log("Due to parse error application deleted!!");
+                deleteApplication_1.default;
             }
         });
     });
@@ -125,6 +129,7 @@ upload.post("/api/v1/upload", token_auth_1.AuthToken, (req, res, next) => {
     uploadMiddleware.single('file')(req, res, (err) => {
         if (err) {
             console.error("Multer upload error:", err);
+            deleteApplication_1.default;
             return res.status(400).json({
                 message: "File upload error",
                 error: err.message
@@ -139,40 +144,66 @@ upload.post("/api/v1/upload", token_auth_1.AuthToken, (req, res, next) => {
         const multerReq = req;
         if (!multerReq.file) {
             res.status(400).json({ message: "No file uploaded" });
+            console.log("Due to multer file error application deleted!!");
+            deleteApplication_1.default;
             return;
         }
-        if (!req.body.role) {
+        const role = req.user.role;
+        if (!role) {
             res.status(400).json({ message: "Role is required" });
+            console.log("Due to role error in uplaods the application deleted!!");
+            deleteApplication_1.default;
             return;
         }
-        // pAss jd as 2nd arg
+        // pass jd as 2nd arg
         const result = yield runPythonScript(multerReq.file.path, job_description);
         console.log("Python script result:", result.response);
         // Check them and fix them
         const candidate_id = req.user.id;
         const job_id = req.body.JobId;
-        const overallRatingMatch = result.response.match(/Overall Rating \(out of 10\):\s*(\d+)/);
+        const regex1 = /Overall Rating \(out of 10\): \[(\d+)\]/;
+        const regex2 = /Overall Rating \(out of 10\):\s*(\d+)/;
+        let overallRatingMatch = result.response.match(regex1);
+        if (!overallRatingMatch) {
+            overallRatingMatch = result.response.match(regex2);
+        }
+        console.log("The Overall Rating was : ", overallRatingMatch);
         let decision = '';
         if (overallRatingMatch) {
             const overallRating = parseInt(overallRatingMatch[1], 10);
-            decision = overallRating >= 6 ? 'Accepted' : 'Rejected';
+            decision = overallRating >= 0 ? 'Accepted' : 'Rejected'; // Changed threshold to 5
         }
-        const query = `UPDATE "Applications" SET status = $1,"ResumeAnalysis_Feedback"=$2 WHERE "candidate_Id" = $3 AND "job_Id" = $4`;
+        let query = "";
+        if (role == 'Candidate') {
+            query = `UPDATE "Candidate_Applications" SET status = $1,"ResumeAnalysis_Feedback"=$2 WHERE "candidate_Id" = $3 AND "job_Id" = $4`;
+        }
+        else if (role == "Interviewer") {
+            query = `UPDATE "Interviewer_Applications" SET status = $1,"ResumeAnalysis_Feedback"=$2 WHERE "interviewer_Id" = $3 AND "job_Id" = $4`;
+        }
         const value = [decision, result.response, candidate_id, job_id];
         yield Database_1.Database.query(query, value);
-        yield (0, SendMail_1.default)(decision, candidate_id, job_id);
+        yield (0, SendMail_1.default)(decision, candidate_id, job_id, role);
+        if (decision === 'Accepted') {
+            yield (0, ScheduleInterview_1.default)(candidate_id, job_id);
+        }
         res.status(200).json({
             message: "Server Task successfully",
             filename: multerReq.file.filename,
             filePath: multerReq.file.path,
-            role: req.body.role
+            role: role
         });
     }
     catch (error) {
         console.error("Upload processing error:", error);
         const candidate_id = req.user.id;
         const job_id = req.body.JobId;
-        const query = `DELETE FROM "Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`;
+        let query = '';
+        if (req.body.role == 'Candidate') {
+            query = `DELETE FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`;
+        }
+        else {
+            query = `DELETE FROM "Interviewer_Applications" WHERE "interviewer_Id" = $1 AND "job_Id" = $2`;
+        }
         const value = [candidate_id, job_id];
         yield Database_1.Database.query(query, value);
         res.status(500).json({

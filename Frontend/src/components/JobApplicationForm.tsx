@@ -51,23 +51,25 @@
       e.preventDefault();
       onSubmit(formData);
 
+      let role = '';
+      if (window.location.href.includes('candidate')) {
+        role = "candidate";
+      } else {
+        role = "interviewer"; // Fix: changed "interview" to "interviewer"
+      }
+
       try{
         const fileUpload = async () => {
-          let role = '';
         
           if (formData.resume) {
             const file = new FormData();
         
-            if (window.location.href.includes('candidate')) {
-              role = "candidate";
-            } else {
-              role = "interviewer"; // Fix: changed "interview" to "interviewer"
-            }
         
             file.append("file", formData.resume);
             file.append("role", role); // Ensure role is sent
             file.append("JobId",formData.jobId.toString());
-        
+            
+            // Require changes of checking if user's alredy registered the nnot run the line of uplaod in Backend
             try {
               await axios.post(`http://localhost:${import.meta.env.VITE_PORT}/api/v1/upload`, file, {
                 withCredentials: true,
@@ -92,8 +94,18 @@
         };
         
         fileUpload();
+
+        let jobApply_URL = "";
+
+        if(role == "candidate"){
+          jobApply_URL = `http://localhost:${import.meta.env.VITE_PORT}/api/v1/jobApply`
+        }else if(role == "interviewer"){
+          jobApply_URL = `http://localhost:${import.meta.env.VITE_PORT}/api/v1/InterviewerJobApply`
+        }
+
+        console.log(jobApply_URL)
         const response = await axios.post(
-          `http://localhost:${import.meta.env.VITE_PORT}/api/v1/jobApply`,
+          jobApply_URL,
           {formData : formData, jobId : id},
           { withCredentials: true }
         );

@@ -6,6 +6,8 @@ import fs from "fs";
 import { spawn } from 'child_process';
 import { Database } from "../Databases/Database";
 import SendMail from "./SendMail";
+import deleteApplication from "./deleteApplication";
+import ScheduleInterview from "./ScheduleInterview";
 
 
 const ROOT_DIR = path.resolve(__dirname, "../../");
@@ -40,7 +42,7 @@ Demonstrating a strong understanding of cloud platforms, particularly GCP, for d
 const runPythonScript = (pdfPath: string , job_description : string): Promise<any> => {
     return new Promise((resolve, reject) => {
         // pass jd as 3rd arg
-      const process = spawn('python', [pythonScriptPath, pdfPath, job_description]);
+        const process = spawn('python', [pythonScriptPath, pdfPath, job_description]);
   
       let dataString = '';
       let errorString = '';
@@ -48,25 +50,27 @@ const runPythonScript = (pdfPath: string , job_description : string): Promise<an
       process.stdout.on('data', (data) => {
         dataString += data.toString();
       });
-  
+      
       process.stderr.on('data', (data) => {
-        errorString += data.toString();
+          errorString += data.toString();
       });
-  
+      
       process.on('close', (code) => {
         if (code !== 0) {
-          return reject(new Error(`Python script exited with code ${code}: ${errorString}`));
+            return reject(new Error(`Python script exited with code ${code}: ${errorString}`));
         }
         try {
           const result = JSON.parse(dataString);
           resolve(result);
         } catch (err) {
-          reject(new Error(`Error parsing Python output: ${(err as Error).message}`));
+            reject(new Error(`Error parsing Python output: ${(err as Error).message}`));
+            console.log("Due to parse error application deleted!!")
+            deleteApplication;
         }
-      });
     });
-  };
-  
+});
+};
+
 
 const generateFilename = (originalName: string) => {
     const ext = path.extname(originalName);
@@ -85,7 +89,7 @@ const storage = multer.diskStorage({
         
         const role = req.user.role.toLowerCase();
         console.log("Processing role:", role);
-
+        
         if (role && file.mimetype) {
             if (file.mimetype.includes("pdf") || file.mimetype.includes("msword") || file.mimetype.includes("officedocument")) {
                 if (role === "interviewer") {
@@ -101,12 +105,13 @@ const storage = multer.diskStorage({
                 console.log("Unsupported file type:", file.mimetype);
             }
         }
-
+        
         const folderPath = path.join(ROOT_DIR, folder);
         fs.mkdirSync(folderPath, { recursive: true });
         console.log("Uploading to:", folderPath);
         cb(null, folderPath);
     },
+
     filename: (req: Request, file, cb) => {
         const role = req.body.role?.toLowerCase();
         const filename = generateFilename(file.originalname);
@@ -128,6 +133,7 @@ upload.post(
         uploadMiddleware.single('file')(req, res, (err) => {
             if (err) {
                 console.error("Multer upload error:", err);
+                deleteApplication;
                 return res.status(400).json({ 
                     message: "File upload error", 
                     error: err.message 
@@ -145,14 +151,19 @@ upload.post(
 
             if (!multerReq.file) {
                 res.status(400).json({ message: "No file uploaded" });
+                console.log("Due to multer file error application deleted!!")
+                deleteApplication;
                 return;
             }
 
-            if (!req.body.role) {
+            const role = req.user.role;
+            if (!role) {
                 res.status(400).json({ message: "Role is required" });
+                console.log("Due to role error in uplaods the application deleted!!")
+                deleteApplication;
                 return;
             }
-            // pAss jd as 2nd arg
+            // pass jd as 2nd arg
             const result = await runPythonScript(multerReq.file.path,job_description);
             console.log("Python script result:", result.response);
 
@@ -160,28 +171,47 @@ upload.post(
             const  candidate_id = req.user.id;
             const job_id = req.body.JobId;
 
-            const overallRatingMatch = result.response.match(/Overall Rating \(out of 10\):\s*(\d+)/);
+            const regex1 = /Overall Rating \(out of 10\): \[(\d+)\]/;
+            const regex2 = /Overall Rating \(out of 10\):\s*(\d+)/;
             
-            let decision = '';
-
-            if (overallRatingMatch) {
-            const overallRating = parseInt(overallRatingMatch[1], 10);
-            decision = overallRating >= 6 ? 'Accepted' : 'Rejected';
+            let overallRatingMatch = result.response.match(regex1);
+            
+            if (!overallRatingMatch) {
+                overallRatingMatch = result.response.match(regex2);
             }
             
-            const query = `UPDATE "Applications" SET status = $1,"ResumeAnalysis_Feedback"=$2 WHERE "candidate_Id" = $3 AND "job_Id" = $4`
+            console.log("The Overall Rating was : ", overallRatingMatch);
+            
+            let decision = '';
+            
+            if (overallRatingMatch) {
+                const overallRating = parseInt(overallRatingMatch[1], 10);
+                decision = overallRating >= 0 ? 'Accepted' : 'Rejected'; // Changed threshold to 5
+            }
+            
+            let query = "";
+
+            if(role == 'Candidate'){
+                query = `UPDATE "Candidate_Applications" SET status = $1,"ResumeAnalysis_Feedback"=$2 WHERE "candidate_Id" = $3 AND "job_Id" = $4`
+            }else if(role == "Interviewer"){
+                query = `UPDATE "Interviewer_Applications" SET status = $1,"ResumeAnalysis_Feedback"=$2 WHERE "interviewer_Id" = $3 AND "job_Id" = $4`
+            }
 
             const value = [decision,result.response,candidate_id,job_id];
 
             await Database.query(query,value);
 
-            await SendMail(decision,candidate_id,job_id);
+            await SendMail(decision,candidate_id,job_id,role);
+
+            if(decision === 'Accepted'){
+                await ScheduleInterview(candidate_id , job_id);
+            }
 
             res.status(200).json({
                 message: "Server Task successfully",
                 filename: multerReq.file.filename,
                 filePath: multerReq.file.path,
-                role: req.body.role
+                role: role
             });
 
         }catch(error) {
@@ -190,7 +220,13 @@ upload.post(
             const  candidate_id = req.user.id;
             const job_id = req.body.JobId;
 
-            const query = `DELETE FROM "Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`
+            let query = ''
+
+            if(req.body.role == 'Candidate'){
+                query = `DELETE FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`
+            }else{
+                query = `DELETE FROM "Interviewer_Applications" WHERE "interviewer_Id" = $1 AND "job_Id" = $2`
+            }
 
             const value = [candidate_id,job_id]
 

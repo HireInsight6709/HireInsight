@@ -8,6 +8,7 @@ import UserRoute from "./routes/user"
 import CompanyRoute from "./routes/company"
 import JobList from "./Middleware/JobList"
 import JobApply from "./Middleware/jobApply"
+import JobApplyInterviewer from "./Middleware/InterviewerJobApply"
 import ApplicationStatus from "./Middleware/status"
 import candidateApplied from "./Middleware/candidateApplied"
 import profile from "./Middleware/profile"
@@ -29,6 +30,7 @@ app.use(UserRoute);
 app.use(CompanyRoute);
 app.use(JobList);
 app.use(JobApply);
+app.use(JobApplyInterviewer)
 app.use(ApplicationStatus);
 app.use(candidateApplied);
 app.use(profile);

@@ -16,8 +16,14 @@ const express_1 = __importDefault(require("express"));
 const token_auth_1 = require("../Authentication/token_auth");
 const Database_1 = require("../Databases/Database");
 const ApplicationStatus = express_1.default.Router();
-const query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
 ApplicationStatus.get("/api/v1/status", token_auth_1.AuthToken, (req, resp) => __awaiter(void 0, void 0, void 0, function* () {
+    let query1 = "";
+    if (req.user.role == 'Candidate') {
+        query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
+    }
+    else if (req.user.role == "Interviewer") {
+        query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Interviewer_Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
+    }
     console.log("On status Page");
     try {
         const response = yield Database_1.Database.query(query1, [req.user.id, req.user.role]);

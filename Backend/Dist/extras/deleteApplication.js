@@ -16,8 +16,14 @@ const token_auth_1 = require("../Authentication/token_auth");
 const Database_1 = require("../Databases/Database");
 const express_1 = __importDefault(require("express"));
 const deleteApplication = express_1.default.Router();
-const query = `DELETE FROM "Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`;
 deleteApplication.post("/api/v1/deleteApplication", token_auth_1.AuthToken, (req, resp) => __awaiter(void 0, void 0, void 0, function* () {
+    let query = '';
+    if (req.body.role == 'Candidate') {
+        query = `DELETE FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2`;
+    }
+    else {
+        query = `DELETE FROM "Interviewer_Applications" WHERE "interviewer_Id" = $1 AND "job_Id" = $2`;
+    }
     try {
         yield Database_1.Database.query(query, [req.user.id, req.body.jobId]);
     }

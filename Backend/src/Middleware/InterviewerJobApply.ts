@@ -17,14 +17,14 @@ interface FormDataInterface {
     }
 }
 
-const JobApply = express.Router();
+const JobApplyInterviewer = express.Router();
 
-const query1 = `SELECT ("firstName","lastName",email,phone,status,time) FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "job_Id" = $2 AND "role" = $3`;
+const query1 = `SELECT ("firstName","lastName",email,phone,status,time) FROM "Interviewer_Applications" WHERE "interviewer_Id" = $1 AND "job_Id" = $2 AND "role" = $3`;
 
-const query2 = 'INSERT INTO "Candidate_Applications" ("firstName","lastName","email","phone","candidate_Id","job_Id","whyHire","experience","challenge","availability","salary","role","company_Id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)';
+const query2 = 'INSERT INTO "Interviewer_Applications" ("firstName","lastName","email","phone","interviewer_Id","job_Id","whyHire","experience","challenge","availability","salary","role","company_Id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)';
 
-JobApply.post("/api/v1/jobApply",AuthToken,async(req,resp)=>{
-    console.log("Request to jobapply");
+JobApplyInterviewer.post("/api/v1/InterviewerJobApply",AuthToken,async(req,resp)=>{
+    console.log("Request to  Interviewer jobapply");
     const formData : FormDataInterface = req.body.formData;
     const jobId = req.body.jobId;
     const role = req.user.role;
@@ -91,4 +91,4 @@ JobApply.post("/api/v1/jobApply",AuthToken,async(req,resp)=>{
     }
 })
 
-export default JobApply;
+export default JobApplyInterviewer;

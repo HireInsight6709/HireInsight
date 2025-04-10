@@ -4,9 +4,17 @@ import { Database } from "../Databases/Database";
 
 const ApplicationStatus = express.Router();
 
-const query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Applications" WHERE "candidate_Id" = $1 AND "role" = $2`;
 
 ApplicationStatus.get("/api/v1/status",AuthToken,async(req,resp)=>{
+    
+    let query1 = "";
+    
+    if(req.user.role == 'Candidate'){
+        query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "role" = $2`
+    }else if (req.user.role == "Interviewer"){
+      query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Interviewer_Applications" WHERE "candidate_Id" = $1 AND "role" = $2`
+    }
+
     console.log("On status Page")
     try{
         const response = await Database.query(query1,[req.user.id,req.user.role])
@@ -29,6 +37,8 @@ ApplicationStatus.get("/api/v1/status",AuthToken,async(req,resp)=>{
                 // Replace the `id` with the fetched job detail
     //   "status": "Rejected",
     //   "feedback": "Feedback here
+
+
                 return {...job,...jobDetail,...comapnyDetail, interviewer: "" ,interviewDate: "", status: "Pending" , feedback: "Feedback Here"} ;
             })
         const information = await Promise.all(updatedJobId)
