@@ -14,6 +14,7 @@ import candidateApplied from "./Middleware/candidateApplied"
 import profile from "./Middleware/profile"
 import upload from "./extras/upload"
 import deleteApplication from "./extras/deleteApplication"
+import GetInterviews from "./Middleware/GetInteriews"
 
 require("dotenv").config()
 
@@ -36,6 +37,7 @@ app.use(candidateApplied);
 app.use(profile);
 app.use(upload);
 app.use(deleteApplication);
+app.use(GetInterviews);
 
 app.listen(process.env.PORT, ()=>{
     console.log(`Listening on Port No. ${process.env.PORT}`)

@@ -17,6 +17,7 @@ const candidateApplied_1 = __importDefault(require("./Middleware/candidateApplie
 const profile_1 = __importDefault(require("./Middleware/profile"));
 const upload_1 = __importDefault(require("./extras/upload"));
 const deleteApplication_1 = __importDefault(require("./extras/deleteApplication"));
+const GetInteriews_1 = __importDefault(require("./Middleware/GetInteriews"));
 require("dotenv").config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -36,6 +37,7 @@ app.use(candidateApplied_1.default);
 app.use(profile_1.default);
 app.use(upload_1.default);
 app.use(deleteApplication_1.default);
+app.use(GetInteriews_1.default);
 app.listen(process.env.PORT, () => {
     console.log(`Listening on Port No. ${process.env.PORT}`);
     (0, Database_1.connectDatabase)();
