@@ -122,7 +122,7 @@ export default function CompanyDashboard() {
           >
             Candidates
           </button>
-          <button
+          {/* <button
             onClick={() => setActiveTab('analytics')}
             className={`${
               activeTab === 'analytics'
@@ -131,7 +131,7 @@ export default function CompanyDashboard() {
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
             Analytics
-          </button>
+          </button> */}
           <button
             onClick={() => setActiveTab('profile')}
             className={`${

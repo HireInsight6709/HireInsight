@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, User } from 'lucide-react';
+// import { Star, User } from 'lucide-react';
 import CandidateProfile from './feedback/CandidateProfile';
 import RatingSection from './feedback/RatingSection';
 import FeedbackSection from './feedback/FeedbackSection';

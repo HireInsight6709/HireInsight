@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom'; // Manage diffrent components
 import { UserPlus, LogIn } from 'lucide-react';
 import axios from 'axios';
 import Cookies from 'js-cookie';

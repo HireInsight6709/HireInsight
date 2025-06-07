@@ -114,7 +114,8 @@ export default function ApplicationStatus() {
               <p className="text-sm text-gray-600">{application.companyName}</p>
               <p className="text-sm text-gray-600">Application Status : <b className={`${getApplicationStatusColor(application.ApplicationStatus)}`}>{application.ApplicationStatus == '' ? 'Rejected' : application.ApplicationStatus}</b></p>
               <div className="text-sm text-gray-500">
-                Interviewed by {application.interviewer} on {new Date(application.interviewDate).toLocaleDateString()}
+                {/* Can't Get the required data directly making queries complex hence hidden */}
+                {/* Interviewed by {application.interviewer} on {new Date(application.interviewDate).toLocaleDateString()} */}
               </div>
             </div>
             {getStatusIcon(application.status)}
