@@ -49,7 +49,6 @@ Conducting data analysis, preprocessing, and modeling to extract valuable insigh
 Staying up to date with the latest advancements in AI technologies, frameworks, and tools, and proactively learning and adopting new technologies to enhance our offerings.
 
 Demonstrating a strong understanding of cloud platforms, particularly GCP, for deploying AI applications.`;
-// pass jd as 2nd arg
 const runPythonScript = (pdfPath, job_description) => {
     return new Promise((resolve, reject) => {
         // pass jd as 3rd arg
@@ -183,8 +182,15 @@ upload.post("/api/v1/upload", token_auth_1.AuthToken, (req, res, next) => {
         const value = [decision, result.response, candidate_id, job_id];
         yield Database_1.Database.query(query, value);
         yield (0, SendMail_1.default)(decision, candidate_id, job_id, role);
-        if (decision === 'Accepted') {
-            yield (0, ScheduleInterview_1.default)(candidate_id, job_id);
+        if (decision === 'Accepted' && role == 'Candidate') {
+            try {
+                console.log("Triggering interview scheduling");
+                yield (0, ScheduleInterview_1.default)(candidate_id, job_id);
+                console.log("Interview scheduled successfully");
+            }
+            catch (err) {
+                console.error("Failed to schedule interview:", err);
+            }
         }
         res.status(200).json({
             message: "Server Task successfully",

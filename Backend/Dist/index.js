@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+// 
 const Database_1 = require("./Databases/Database");
 const user_1 = __importDefault(require("./routes/user"));
 const company_1 = __importDefault(require("./routes/company"));
@@ -18,6 +19,7 @@ const profile_1 = __importDefault(require("./Middleware/profile"));
 const upload_1 = __importDefault(require("./extras/upload"));
 const deleteApplication_1 = __importDefault(require("./extras/deleteApplication"));
 const GetInteriews_1 = __importDefault(require("./Middleware/GetInteriews"));
+const candidatesList_1 = __importDefault(require("./Middleware/candidatesList"));
 require("dotenv").config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -38,6 +40,7 @@ app.use(profile_1.default);
 app.use(upload_1.default);
 app.use(deleteApplication_1.default);
 app.use(GetInteriews_1.default);
+app.use(candidatesList_1.default);
 app.listen(process.env.PORT, () => {
     console.log(`Listening on Port No. ${process.env.PORT}`);
     (0, Database_1.connectDatabase)();

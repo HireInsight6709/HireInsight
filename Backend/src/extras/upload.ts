@@ -38,7 +38,6 @@ Staying up to date with the latest advancements in AI technologies, frameworks, 
 
 Demonstrating a strong understanding of cloud platforms, particularly GCP, for deploying AI applications.`
 
-// pass jd as 2nd arg
 const runPythonScript = (pdfPath: string , job_description : string): Promise<any> => {
     return new Promise((resolve, reject) => {
         // pass jd as 3rd arg
@@ -203,9 +202,16 @@ upload.post(
 
             await SendMail(decision,candidate_id,job_id,role);
 
-            if(decision === 'Accepted'){
-                await ScheduleInterview(candidate_id , job_id);
+            if(decision === 'Accepted' && role == 'Candidate'){
+                try {
+                    console.log("Triggering interview scheduling");
+                    await ScheduleInterview(candidate_id , job_id);
+                    console.log("Interview scheduled successfully");
+                } catch(err) {
+                    console.error("Failed to schedule interview:", err);
+                }
             }
+
 
             res.status(200).json({
                 message: "Server Task successfully",

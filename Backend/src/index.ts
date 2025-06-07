@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
+// 
 import {connectDatabase} from "./Databases/Database"
 
 import UserRoute from "./routes/user"
@@ -15,6 +16,7 @@ import profile from "./Middleware/profile"
 import upload from "./extras/upload"
 import deleteApplication from "./extras/deleteApplication"
 import GetInterviews from "./Middleware/GetInteriews"
+import candidatesList from "./Middleware/candidatesList"
 
 require("dotenv").config()
 
@@ -38,6 +40,7 @@ app.use(profile);
 app.use(upload);
 app.use(deleteApplication);
 app.use(GetInterviews);
+app.use(candidatesList);
 
 app.listen(process.env.PORT, ()=>{
     console.log(`Listening on Port No. ${process.env.PORT}`)

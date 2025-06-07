@@ -18,7 +18,7 @@ const query1 = `SELECT "id",
     'salary', "salary"
   ) AS answers,
   "candidate_Id", "role", "job_Id","status", TO_CHAR("time", 'YYYY-MM-DD') as "appliedDate"
-  FROM "Applications" WHERE "company_id" = $1;`
+  FROM "Candidate_Applications" WHERE "company_Id" = $1;`
 
 candidateApplied.get("/api/v1/candidateApplied/",AuthToken,async(req,resp)=>{
   console.log("On candidateApplied Page");

@@ -10,12 +10,12 @@ ApplicationStatus.get("/api/v1/status",AuthToken,async(req,resp)=>{
     let query1 = "";
     
     if(req.user.role == 'Candidate'){
-        query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "role" = $2`
+        query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus","FinalResult" AS "status" FROM "Candidate_Applications" WHERE "candidate_Id" = $1 AND "role" = $2`
     }else if (req.user.role == "Interviewer"){
       query1 = `SELECT "id","job_Id","status" AS "ApplicationStatus" FROM "Interviewer_Applications" WHERE "candidate_Id" = $1 AND "role" = $2`
     }
 
-    console.log("On status Page")
+    console.log("On Candidate Application's status Page")
     try{
         const response = await Database.query(query1,[req.user.id,req.user.role])
         const jobs = response.rows;
@@ -39,7 +39,7 @@ ApplicationStatus.get("/api/v1/status",AuthToken,async(req,resp)=>{
     //   "feedback": "Feedback here
 
 
-                return {...job,...jobDetail,...comapnyDetail, interviewer: "" ,interviewDate: "", status: "Pending" , feedback: "Feedback Here"} ;
+                return {...job,...jobDetail,...comapnyDetail, interviewer: "" ,interviewDate: "" , feedback: "Feedback Here"} ;
             })
         const information = await Promise.all(updatedJobId)
         console.log("Updated jobs are:", information);
