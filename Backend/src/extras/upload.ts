@@ -172,11 +172,26 @@ upload.post(
 
             const regex1 = /Overall Rating \(out of 10\): \[(\d+)\]/;
             const regex2 = /Overall Rating \(out of 10\):\s*(\d+)/;
-            
+            const regex3 = /Overall Rating \(out of 10\):\s*(\d+)\*/;
+            const regex4 = /\*\*Overall Rating \(out of 10\):\*\*\s*(\d+)/;
+            const regex5 = /\*\*Overall Rating \(out of 10\):\*\*\s*\\?\[(\d+)\]/;
+
             let overallRatingMatch = result.response.match(regex1);
             
             if (!overallRatingMatch) {
                 overallRatingMatch = result.response.match(regex2);
+            }
+
+            if(!overallRatingMatch){
+                overallRatingMatch = result.response.match(regex3);
+            }
+
+            if(!overallRatingMatch){
+                overallRatingMatch = result.response.match(regex4);
+            }
+
+            if(!overallRatingMatch){
+                overallRatingMatch = result.response.match(regex5);
             }
             
             console.log("The Overall Rating was : ", overallRatingMatch);
